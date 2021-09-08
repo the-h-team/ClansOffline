@@ -3,9 +3,15 @@ package com.github.sanctum.clansoffline.impl;
 import com.github.sanctum.clansoffline.api.Claim;
 import com.github.sanctum.clansoffline.api.Clan;
 import com.github.sanctum.clansoffline.api.ClansAPI;
+import com.github.sanctum.clansoffline.bank.EconomyEntity;
+import com.github.sanctum.clansoffline.bank.OfflineBank;
+import com.github.sanctum.clansoffline.bank.exceptions.DepositException;
+import com.github.sanctum.clansoffline.bank.exceptions.WithdrawalException;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
+
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -14,7 +20,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OfflineClan extends Clan {
+public class OfflineClan extends Clan implements OfflineBank {
 
 	private final HUID id;
 	private String name;
@@ -341,5 +347,44 @@ public class OfflineClan extends Clan {
 	@Override
 	public void takeClaim(double amount) {
 		this.claimBonus -= amount;
+	}
+
+	// below for OfflineBank/EconomyEntity contract
+
+	@Override
+	public boolean hasAmount(@NotNull BigDecimal amount) {
+		return ClansAPI.getInstance().getBankManager().getBalance(id).compareTo(amount) >= 0;
+	}
+
+	@Override
+	public void takeAmount(@NotNull BigDecimal amount) throws WithdrawalException {
+		if (!hasAmount(amount)) throw new WithdrawalException(amount, getName() + " does not have enough funds to withdraw " + amount);
+		ClansAPI.getInstance().getBankManager().adjustBalance(id, amount.negate());
+	}
+
+	@Override
+	public void giveAmount(@NotNull BigDecimal amount) {
+		ClansAPI.getInstance().getBankManager().adjustBalance(id, amount);
+	}
+
+	@Override
+	public @NotNull BigDecimal getBalance() {
+		return ClansAPI.getInstance().getBankManager().getBalance(id);
+	}
+
+	@Override
+	public void depositFrom(@NotNull EconomyEntity from, @NotNull BigDecimal amount) throws WithdrawalException {
+		// Try to take amount from provided entity
+		from.takeAmount(amount);
+		// Give amount to the bank
+		giveAmount(amount);
+	}
+
+	@Override
+	public void withdrawTo(@NotNull EconomyEntity to, @NotNull BigDecimal amount) throws WithdrawalException, DepositException {
+		// Try to take amount from the bank
+		takeAmount(amount);
+		// Try to give amount to provided entity
+		to.giveAmount(amount);
 	}
 }

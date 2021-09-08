@@ -4,6 +4,7 @@ import com.github.sanctum.clansoffline.api.Claim;
 import com.github.sanctum.clansoffline.api.Clan;
 import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.api.ClanAddon;
+import com.github.sanctum.clansoffline.bank.BankManager;
 import com.github.sanctum.clansoffline.bukkit.command.ClanCommand;
 import com.github.sanctum.clansoffline.bukkit.event.ClaimResidentialEvent;
 import com.github.sanctum.clansoffline.impl.ClanDataFile;
@@ -40,6 +41,7 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 	private final Set<Manager<?>> managers = new HashSet<>();
 	private ClanDataFile file;
 	private ClanPrefix prefix;
+	private BankManager bankManager;
 
 	@Override
 	public void onEnable() {
@@ -109,6 +111,7 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 		managers.add(new ClaimManager());
 		managers.add(new ShieldManager());
 		managers.add(new AddonManager());
+		this.bankManager = new BankManager(this);
 		CommandRegistration.use(new ClanCommand());
 		new Registry<>(Listener.class).source(this).pick("com.github.sanctum.clansoffline.bukkit.listener").operate(l -> {
 			new EasyListener(l).call(this);
@@ -127,6 +130,7 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 				cl.save();
 			}
 		});
+		bankManager.safeShutdown(this);
 	}
 
 	@Override
@@ -194,5 +198,10 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 	@Override
 	public ShieldManager getShieldManager() {
 		return managers.stream().filter(m -> m instanceof ShieldManager).map(manager -> (ShieldManager)manager).findFirst().get();
+	}
+
+	@Override
+	public BankManager getBankManager() {
+		return bankManager;
 	}
 }

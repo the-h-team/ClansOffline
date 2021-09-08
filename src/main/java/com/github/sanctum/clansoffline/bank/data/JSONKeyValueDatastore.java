@@ -42,12 +42,28 @@ public class JSONKeyValueDatastore<K, V> {
     /**
      * Initialize a new datastore using the specified Map constructor
      * to instantiate the internal backing collection.
+     * <p>
+     * Delegates to {@link #JSONKeyValueDatastore(Supplier, Gson)} with
+     * {@code gson} instantiated with {@code new Gson()}.
      *
      * @param generatorFunction a Map constructor
      * @param <T> inferred Map subtype
      */
     public <T extends Map<K, V>> JSONKeyValueDatastore(@NotNull Supplier<T> generatorFunction) {
-        gson = new Gson();
+        this(generatorFunction, new Gson());
+    }
+
+    /**
+     * Initialize a new datastore using the specified Map constructor
+     * to instantiate the internal backing collection and {@code gson}
+     * to control serialization behavior
+     *
+     * @param generatorFunction a Map constructor
+     * @param gson a customized Gson instance
+     * @param <T> inferred Map subtype
+     */
+    public <T extends Map<K, V>> JSONKeyValueDatastore(@NotNull Supplier<T> generatorFunction, @NotNull Gson gson) {
+        this.gson = gson;
         data = generatorFunction.get();
         type = new TypeToken<T>() {}.getType();
         readWriteService = Executors.newSingleThreadExecutor();

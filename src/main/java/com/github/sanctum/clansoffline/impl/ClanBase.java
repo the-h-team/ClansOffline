@@ -1,8 +1,8 @@
 package com.github.sanctum.clansoffline.impl;
 
 import com.github.sanctum.clansoffline.api.Clan;
-import com.sun.istack.internal.NotNull;
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 
 public class ClanBase extends Clan.Component<LocationStorage> {
 

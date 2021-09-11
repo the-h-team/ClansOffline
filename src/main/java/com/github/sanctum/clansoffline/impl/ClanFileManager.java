@@ -4,11 +4,12 @@ import com.github.sanctum.clansoffline.api.Clan;
 import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ClanFileManager implements Clan.Storage {
 
+	private static final long serialVersionUID = -3528265220538365419L;
 	private final FileManager manager;
 
 	public ClanFileManager(@NotNull String id, @Nullable String location) {

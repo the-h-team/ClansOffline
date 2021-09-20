@@ -4,7 +4,6 @@ import com.github.sanctum.clansoffline.api.Claim;
 import com.github.sanctum.clansoffline.api.Clan;
 import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.bank.EconomyEntity;
-import com.github.sanctum.clansoffline.bank.OfflineBank;
 import com.github.sanctum.clansoffline.bank.exceptions.DepositException;
 import com.github.sanctum.clansoffline.bank.exceptions.WithdrawalException;
 import com.github.sanctum.labyrinth.library.HUID;
@@ -20,7 +19,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OfflineClan extends Clan implements OfflineBank {
+public class OfflineClan extends Clan {
 
 	private final HUID id;
 	private String name;
@@ -385,6 +384,13 @@ public class OfflineClan extends Clan implements OfflineBank {
 		// Try to take amount from the bank
 		takeAmount(amount);
 		// Try to give amount to provided entity
-		to.giveAmount(amount);
+		try {
+			to.giveAmount(amount);
+		} catch (DepositException e) {
+			// reverse take amount
+			giveAmount(amount);
+			// rethrow
+			throw e;
+		}
 	}
 }

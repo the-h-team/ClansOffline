@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -276,6 +277,11 @@ public class ClanCommand extends Command {
 					msg.send("&2Deposited " + formatCurrency(amount) + " with the clan.");
 					msg.send("&aNew balance: &e" + formatCurrency(associate.getClan().getBalance()));
 				} else if (equals(args[0], "withdraw")) {
+					// Check for access level
+					if (associate.getRank().getLevel() < 2) {
+						msg.send("&cYou must have a higher rank.");
+						return true;
+					}
 					try {
 						associate.getClan().withdrawTo(playerEconomyEntity, amount);
 					} catch (WithdrawalException e) {
@@ -380,6 +386,63 @@ public class ClanCommand extends Command {
 			return console(sender, label, args);
 		}
 		return player((Player)sender, label, args);
+	}
+
+	@Override
+	public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+		final ArrayList<String> completions = new ArrayList<>();
+		if (args.length == 1) {
+			final String lowerCase = args[0].toLowerCase(Locale.ROOT);
+			if ("bank".startsWith(lowerCase)) {
+				completions.add("bank");
+			}
+			if ("deposit".startsWith(lowerCase)) {
+				completions.add("deposit");
+			}
+			if ("withdraw".startsWith(lowerCase)) {
+				completions.add("withdraw");
+			}
+		} else if (args.length == 2) {
+			final String lowerCase0 = args[0].toLowerCase(Locale.ROOT);
+			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
+			if ("bank".equals(lowerCase0)) {
+				if ("send".startsWith(lowerCase1)) {
+					completions.add("send");
+				}
+			}
+			if ("deposit".equals(lowerCase0) || "withdraw".equals(lowerCase0)) {
+				if ("10".startsWith(lowerCase1)) {
+					completions.add("10");
+				}
+			}
+		} else if (args.length == 3) {
+			final String lowerCase0 = args[0].toLowerCase(Locale.ROOT);
+			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
+			final String lowerCase2 = args[2].toLowerCase(Locale.ROOT);
+			if ("bank".equals(lowerCase0)) {
+				if ("send".equals(lowerCase1)) {
+					return ClansAPI.getInstance().getClanManager().getClans()
+							.map(Clan::getName)
+							.filter(clanName -> clanName.startsWith(lowerCase2))
+							.collect(Collectors.toList());
+				}
+			}
+		} else if (args.length == 4) {
+			final String lowerCase0 = args[0].toLowerCase(Locale.ROOT);
+			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
+			final String lowerCase2 = args[2].toLowerCase(Locale.ROOT);
+			final String lowerCase3 = args[3].toLowerCase(Locale.ROOT);
+			if ("bank".equals(lowerCase0)) {
+				if ("send".equals(lowerCase1)) {
+					if (ClansAPI.getInstance().getClan(args[2]) != null) {
+						if ("10".startsWith(lowerCase3)) {
+							completions.add("10");
+						}
+					}
+				}
+			}
+		}
+		return completions;
 	}
 
 	private BigDecimal roundUserInput(BigDecimal original) {

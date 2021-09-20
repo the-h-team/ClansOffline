@@ -83,16 +83,13 @@ public class BankManager {
      * @return the clan bank balance
      */
     public @NotNull BigDecimal getBalance(@NotNull HUID clanId) {
-        return balanceDatastore.get(clanId.toString())
-                .handle((toString, t) -> {
-                    if (toString != null) {
-                        return new BigDecimal(toString);
-                    }
-                    final BigDecimal startingBalance = getStartingBalance();
-                    setBalance(clanId, startingBalance);
-                    return startingBalance;
-                })
-                .join();
+        final String toString = balanceDatastore.get(clanId.toString()).join();
+        if (toString != null) {
+            return new BigDecimal(toString);
+        }
+        final BigDecimal startingBalance = getStartingBalance();
+        setBalance(clanId, startingBalance);
+        return startingBalance;
     }
 
     /**
@@ -109,6 +106,7 @@ public class BankManager {
         } else {
             balanceDatastore.removeNow(clanId.toString());
         }
+        balanceDatastore.saveToFileAsync(dataFile);
     }
 
     /**
@@ -127,6 +125,7 @@ public class BankManager {
      * @param plugin plugin for logging
      */
     public void safeShutdown(@NotNull Plugin plugin) {
+        balanceDatastore.saveToFileAsync(dataFile);
         balanceDatastore.awaitShutdown(plugin);
     }
 }

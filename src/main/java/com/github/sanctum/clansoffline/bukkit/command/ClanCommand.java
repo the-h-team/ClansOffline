@@ -3,14 +3,22 @@ package com.github.sanctum.clansoffline.bukkit.command;
 import com.github.sanctum.clansoffline.api.Claim;
 import com.github.sanctum.clansoffline.api.Clan;
 import com.github.sanctum.clansoffline.api.ClansAPI;
+import com.github.sanctum.clansoffline.bank.entities.EconomyProvisionPlayerEconomyEntity;
+import com.github.sanctum.clansoffline.bank.exceptions.DepositException;
+import com.github.sanctum.clansoffline.bank.exceptions.WithdrawalException;
 import com.github.sanctum.clansoffline.bukkit.StringLibrary;
 import com.github.sanctum.clansoffline.impl.ClanBase;
 import com.github.sanctum.clansoffline.impl.OfflineClaim;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Message;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -203,6 +211,28 @@ public class ClanCommand extends Command {
 				return true;
 			}
 
+			// begin bank section
+			if (equals(args[0], "bank")) {
+				if (associate != null) {
+					msg.send("&aWelcome to the clan bank.");
+					msg.send("The clan balance seems to be " + formatCurrency(associate.getClan().getBalance()));
+				} else {
+					msg.send("&cYou are not in a clan!");
+				}
+				return true;
+			}
+
+			else if (equals(args[0], "deposit", "withdraw")) {
+				if (associate != null) {
+					msg.send("&aValid syntax:\n &b/clan &7<&edeposit&7|&ewithdraw&7> &7<&aamount&7>");
+				} else {
+					msg.send("&cYou are not in a clan!");
+				}
+				return true;
+			}
+
+			// end bank section
+
 			return true;
 		}
 
@@ -217,6 +247,54 @@ public class ClanCommand extends Command {
 				}
 				return true;
 			}
+
+			// begin bank section
+			else if (equals(args[0], "deposit", "withdraw")) {
+				if (associate == null) {
+					msg.send("&cYou are not in a clan!");
+					return true;
+				}
+				final BigDecimal amount;
+				try {
+					amount = roundUserInput(new BigDecimal(i));
+				} catch (NumberFormatException ignored) {
+					msg.send("&c" + i + "&c is not a valid number.");
+					return true;
+				}
+				if (amount.signum() < 0) {
+					msg.send("&cAmount cannot be negative!");
+					return true;
+				}
+				final EconomyProvisionPlayerEconomyEntity playerEconomyEntity = new EconomyProvisionPlayerEconomyEntity(p);
+				if (equals(args[0], "deposit")) {
+					try {
+						associate.getClan().depositFrom(playerEconomyEntity, amount);
+					} catch (WithdrawalException e) {
+						msg.send("&cUnable to deposit " + formatCurrency(e.getOriginalAmount()) + ", do you have it?");
+						return true;
+					}
+					msg.send("&2Deposited " + formatCurrency(amount) + " with the clan.");
+					msg.send("&aNew balance: &e" + formatCurrency(associate.getClan().getBalance()));
+				} else if (equals(args[0], "withdraw")) {
+					try {
+						associate.getClan().withdrawTo(playerEconomyEntity, amount);
+					} catch (WithdrawalException e) {
+						msg.send("&cUnable to withdraw " + formatCurrency(e.getOriginalAmount()) + ". Does the bank have it?");
+						return true;
+					} catch (DepositException e) {
+						msg.send("Sorry! We weren't able to give you the funds. They remain with the bank.");
+						return true;
+					}
+					msg.send("&2Withdrew " + formatCurrency(amount) + " from the clan.");
+					msg.send("&aNew balance: &e" + formatCurrency(associate.getClan().getBalance()));
+				}
+				return true;
+			}
+			else if (equals(args[0], "bank")) {
+				msg.send("&aValid syntax:\n &b/clan bank &7<&esend&7> &7<&eother_clan&7> &7<&aamount&7>");
+			}
+
+			// end bank section
 
 			return true;
 		}
@@ -234,7 +312,63 @@ public class ClanCommand extends Command {
 				return true;
 			}
 
+			// begin bank section
+			else if (equals(args[0], "bank")) {
+				if (associate != null) {
+					msg.send("&aValid syntax:\n &b/clan bank &7<&esend&7> &7<&eother_clan&7> &7<&aamount&7>");
+				} else {
+					msg.send("&cYou are not in a clan!");
+				}
+			}
+
+			// end bank section
+
 			return true;
+		}
+
+		if (args.length == 4) {
+			// begin bank section
+			if (equals(args[0], "bank")) {
+				if (associate != null) {
+					if (equals(args[1], "send")) {
+						// validate amount ahead of clan resolution
+						final BigDecimal transferAmount;
+						try {
+							transferAmount = roundUserInput(new BigDecimal(args[3]));
+						} catch (NumberFormatException ignored) {
+							msg.send("&c" + args[3] + "&c is not a valid number.");
+							return true;
+						}
+						if (transferAmount.signum() < 0) {
+							msg.send("&cAmount cannot be negative!");
+							return true;
+						}
+						// resolve target clan by name
+						final Clan targetClan = ClansAPI.getInstance().getClan(args[2]);
+						if (targetClan == null) {
+							msg.send("&cThat clan does not exist.");
+							return true;
+						}
+						try {
+							associate.getClan().withdrawTo(targetClan, transferAmount);
+						} catch (WithdrawalException e) {
+							msg.send("&cUnable to send " + formatCurrency(e.getOriginalAmount()) + ". Does the bank have it?");
+							return true;
+						} catch (DepositException e) {
+							msg.send("Sorry! We weren't able to transfer the funds. They remain with the clan.");
+							return true;
+						}
+						msg.send("&2Transferred " + formatCurrency(transferAmount) + " from the clan to " + targetClan.getColor() + args[2] + ".");
+						msg.send("&aYour new clan balance: &e" + formatCurrency(associate.getClan().getBalance()));
+						return true;
+					}
+					msg.send("&aValid syntax:\n &b/clan bank &7<&esend&7> &7<&eother_clan&7> &7<&aamount&7>");
+				} else {
+					msg.send("&cYou are not in a clan!");
+				}
+			}
+
+			// end bank section
 		}
 
 		return true;
@@ -248,7 +382,13 @@ public class ClanCommand extends Command {
 		return player((Player)sender, label, args);
 	}
 
+	private BigDecimal roundUserInput(BigDecimal original) {
+		return original.setScale(2, RoundingMode.HALF_UP);
+	}
 
+	private String formatCurrency(BigDecimal amount) {
+		return NumberFormat.getCurrencyInstance(Locale.US).format(amount.doubleValue());
+	}
 
 
 }

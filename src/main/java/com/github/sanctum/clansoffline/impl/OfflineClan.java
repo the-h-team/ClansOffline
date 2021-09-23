@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,25 +148,19 @@ public class OfflineClan extends Clan {
 		int claimAmount = getClaims().size();
 		result = result + add + (claimAmount * multiplier);
 		double bonus = this.powerBonus;
-		/* TODO: bank impl thingy majigger
-		if (ClansAPI.getData().getEnabled("Clans.banks.influence")) {
+		if (ClansAPI.getInstance().getMain().read(c -> c.getBoolean("Clans.banks.influence"))) {
 			if (Bukkit.getPluginManager().isPluginEnabled("Vault") || Bukkit.getPluginManager().isPluginEnabled("Enterprise")) {
 				double bal = getBalance().doubleValue();
 				if (bal != 0) {
 					bonus += bal / 48.94;
 				}
-			} else {
-				bonus += getWins() * 39.8;
 			}
-		} else {
-			bonus += getWins() * 39.8;
 		}
-		 */
 		return result + bonus;
 	}
 
 	@Override
-	public double getMaxClaims() {
+	public int getMaxClaims() {
 		if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.land-claiming.claim-influence.allow"))) {
 			return 0;
 		}

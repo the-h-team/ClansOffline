@@ -9,17 +9,21 @@ Clans:
     un-claim-all: 3
     re-name: 2
     setbase: 1
-    password: 23
+    password: 3
 
   land-claiming:
+    # Allow clan member size and clan bank to decide claim amounts.
     claim-influence:
       allow: true
+      ## NORMAL = Depend on a clans bank balance for obtaining land.
+      ## LOW = Assist the base multiplier and all other power additions for no / slower bank situations.
       dependence: HIGH
 
   bank:
     enabled: true
 #    starting-balance: "100" # this must be a valid BigDecimal#toString representation
 
+  # Blacklist specified clan names, color codes or worlds.
   list:
     names:
       - nigger

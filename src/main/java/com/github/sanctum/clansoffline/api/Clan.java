@@ -42,7 +42,7 @@ public abstract class Clan implements OfflineBank {
 
 	public abstract double getPower();
 
-	public abstract double getMaxClaims();
+	public abstract int getMaxClaims();
 
 	public @Nullable abstract Associate getOwner(Predicate<Associate> predicate);
 

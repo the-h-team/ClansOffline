@@ -16,6 +16,9 @@ Clans:
       allow: true
       dependence: HIGH
 
+  bank:
+    enabled: true
+
   list:
     names:
       - nigger

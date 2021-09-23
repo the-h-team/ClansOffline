@@ -16,6 +16,10 @@ Clans:
       allow: true
       dependence: HIGH
 
+  bank:
+    enabled: true
+#    starting-balance: "100" # this must be a valid BigDecimal#toString representation
+
   list:
     names:
       - nigger

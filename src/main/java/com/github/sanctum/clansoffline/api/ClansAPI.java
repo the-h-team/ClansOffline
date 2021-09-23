@@ -1,5 +1,6 @@
 package com.github.sanctum.clansoffline.api;
 
+import com.github.sanctum.clansoffline.bank.BankManager;
 import com.github.sanctum.clansoffline.bukkit.ClansJavaPlugin;
 import com.github.sanctum.clansoffline.impl.ClanDataFile;
 import com.github.sanctum.clansoffline.impl.ClanPrefix;
@@ -43,6 +44,8 @@ public interface ClansAPI {
 	@NotNull ClaimManager getClaimManager();
 
 	@NotNull ShieldManager getShieldManager();
+
+	BankManager getBankManager();
 
 
 }

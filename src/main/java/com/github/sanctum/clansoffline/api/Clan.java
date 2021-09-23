@@ -1,5 +1,6 @@
 package com.github.sanctum.clansoffline.api;
 
+import com.github.sanctum.clansoffline.bank.OfflineBank;
 import com.github.sanctum.clansoffline.impl.ClanBase;
 import com.github.sanctum.clansoffline.impl.ClanDataContainer;
 import com.github.sanctum.clansoffline.impl.ClanDataFile;
@@ -25,7 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Clan {
+public abstract class Clan implements OfflineBank {
 
 	protected final Set<Component<?>> components = new HashSet<>();
 

@@ -18,6 +18,7 @@ Clans:
 
   bank:
     enabled: true
+#    starting-balance: "100" # this must be a valid BigDecimal#toString representation
 
   list:
     names:

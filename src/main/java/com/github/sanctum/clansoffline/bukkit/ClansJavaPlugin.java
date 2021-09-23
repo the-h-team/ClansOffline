@@ -24,7 +24,10 @@ import com.github.sanctum.labyrinth.event.EasyListener;
 import com.github.sanctum.labyrinth.event.custom.Vent;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.task.Schedule;
+
+import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -112,6 +115,13 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 		managers.add(new ShieldManager());
 		managers.add(new AddonManager());
 		this.bankManager = new BankManager(this);
+		Optional.ofNullable(getMain().read(f -> f.getString("Clans.bank.starting-balance"))).map(s -> {
+			try {
+				return new BigDecimal(s);
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
+		}).ifPresent(bankManager::setStartingBalance);
 		CommandRegistration.use(new ClanCommand());
 		new Registry<>(Listener.class).source(this).pick("com.github.sanctum.clansoffline.bukkit.listener").operate(l -> {
 			new EasyListener(l).call(this);

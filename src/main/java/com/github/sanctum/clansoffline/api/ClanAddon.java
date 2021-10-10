@@ -1,5 +1,7 @@
 package com.github.sanctum.clansoffline.api;
 
+import com.github.sanctum.labyrinth.LabyrinthProvider;
+import com.github.sanctum.labyrinth.api.Service;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.event.EasyListener;
@@ -50,11 +52,11 @@ public abstract class ClanAddon {
 	}
 
 	public final void register(Vent.Subscription<?> subscription) {
-		Vent.subscribe(subscription);
+		LabyrinthProvider.getService(Service.VENT).subscribe(subscription);
 	}
 
 	public final @NotNull FileManager getFile(@NotNull String name, @Nullable String directory) {
-		return FileList.search(getPlugin()).find(name, directory);
+		return FileList.search(getPlugin()).get(name, directory);
 	}
 
 }

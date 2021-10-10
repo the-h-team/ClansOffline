@@ -10,6 +10,7 @@ import com.github.sanctum.clansoffline.bukkit.StringLibrary;
 import com.github.sanctum.clansoffline.impl.ClanBase;
 import com.github.sanctum.clansoffline.impl.OfflineClaim;
 import com.github.sanctum.labyrinth.library.HUID;
+import com.github.sanctum.labyrinth.library.MathUtils;
 import com.github.sanctum.labyrinth.library.Message;
 
 import java.math.BigDecimal;
@@ -214,7 +215,7 @@ public class ClanCommand extends Command {
 
 			// begin bank section
 			if (equals(args[0], "bank")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -228,7 +229,7 @@ public class ClanCommand extends Command {
 			}
 
 			else if (equals(args[0], "deposit", "withdraw")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -259,7 +260,7 @@ public class ClanCommand extends Command {
 
 			// begin bank section
 			else if (equals(args[0], "deposit", "withdraw")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -309,7 +310,7 @@ public class ClanCommand extends Command {
 				return true;
 			}
 			else if (equals(args[0], "bank")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -336,7 +337,7 @@ public class ClanCommand extends Command {
 
 			// begin bank section
 			else if (equals(args[0], "bank")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -355,7 +356,7 @@ public class ClanCommand extends Command {
 		if (args.length == 4) {
 			// begin bank section
 			if (equals(args[0], "bank")) {
-				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+				if (!ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 					msg.send("&cClan banks are disabled on this server.");
 					return true;
 				}
@@ -417,7 +418,7 @@ public class ClanCommand extends Command {
 		final ArrayList<String> completions = new ArrayList<>();
 		if (args.length == 1) {
 			final String lowerCase = args[0].toLowerCase(Locale.ROOT);
-			final boolean bankEnabled = ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true));
+			final boolean bankEnabled = ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"));
 			if (bankEnabled && "bank".startsWith(lowerCase)) {
 				completions.add("bank");
 			}
@@ -430,12 +431,12 @@ public class ClanCommand extends Command {
 		} else if (args.length == 2) {
 			final String lowerCase0 = args[0].toLowerCase(Locale.ROOT);
 			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
-			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 				if ("send".startsWith(lowerCase1)) {
 					completions.add("send");
 				}
 			}
-			if (("deposit".equals(lowerCase0) || "withdraw".equals(lowerCase0)) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+			if (("deposit".equals(lowerCase0) || "withdraw".equals(lowerCase0)) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 				if ("10".startsWith(lowerCase1)) {
 					completions.add("10");
 				}
@@ -444,7 +445,7 @@ public class ClanCommand extends Command {
 			final String lowerCase0 = args[0].toLowerCase(Locale.ROOT);
 			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
 			final String lowerCase2 = args[2].toLowerCase(Locale.ROOT);
-			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 				if ("send".equals(lowerCase1)) {
 					return ClansAPI.getInstance().getClanManager().getClans()
 							.map(Clan::getName)
@@ -457,7 +458,7 @@ public class ClanCommand extends Command {
 			final String lowerCase1 = args[1].toLowerCase(Locale.ROOT);
 			final String lowerCase2 = args[2].toLowerCase(Locale.ROOT);
 			final String lowerCase3 = args[3].toLowerCase(Locale.ROOT);
-			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled", true))) {
+			if ("bank".equals(lowerCase0) && ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Clans.bank.enabled"))) {
 				if ("send".equals(lowerCase1)) {
 					if (ClansAPI.getInstance().getClan(args[2]) != null) {
 						if ("10".startsWith(lowerCase3)) {
@@ -475,7 +476,7 @@ public class ClanCommand extends Command {
 	}
 
 	private String formatCurrency(BigDecimal amount) {
-		return NumberFormat.getCurrencyInstance(Locale.US).format(amount.doubleValue());
+		return MathUtils.use(amount).formatCurrency(Locale.US);
 	}
 
 

@@ -6,6 +6,7 @@ import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.bank.EconomyEntity;
 import com.github.sanctum.clansoffline.bank.exceptions.DepositException;
 import com.github.sanctum.clansoffline.bank.exceptions.WithdrawalException;
+import com.github.sanctum.labyrinth.data.EconomyProvision;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
@@ -68,15 +69,15 @@ public class OfflineClan extends Clan {
 				this.password = password;
 			}
 
-			for (String rank : file.read(f -> f.getConfigurationSection("members").getKeys(false))) {
+			for (String rank : file.read(f -> f.getNode("members").getKeys(false))) {
 				Rank r = Rank.valueOf(rank);
 				for (String m : file.read(f -> f.getStringList("members." + rank))) {
 					associates.add(new OfflineAssociate(m, this, r));
 				}
 			}
 
-			if (file.read(f -> f.isConfigurationSection("claims"))) {
-				for (String claim : file.read(f -> f.getConfigurationSection("claims").getKeys(false))) {
+			if (file.read(f -> f.isNode("claims"))) {
+				for (String claim : file.read(f -> f.getNode("claims").getKeys(false))) {
 					LocationStorage storage = file.getLocationStorage("claims." + claim + ".storage");
 					Claim c = new OfflineClaim(HUID.fromString(claim), storage.getStorage(), HUID.fromString(id));
 					c.setActive(true);
@@ -149,7 +150,7 @@ public class OfflineClan extends Clan {
 		result = result + add + (claimAmount * multiplier);
 		double bonus = this.powerBonus;
 		if (ClansAPI.getInstance().getMain().read(c -> c.getBoolean("Clans.banks.influence"))) {
-			if (Bukkit.getPluginManager().isPluginEnabled("Vault") || Bukkit.getPluginManager().isPluginEnabled("Enterprise")) {
+			if (EconomyProvision.getInstance().isValid()) {
 				double bal = getBalance().doubleValue();
 				if (bal != 0) {
 					bonus += bal / 48.94;

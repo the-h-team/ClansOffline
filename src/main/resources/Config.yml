@@ -21,6 +21,7 @@ Clans:
 
   bank:
     enabled: true
+    # Un-comment the below string to set a starting balance.
 #    starting-balance: "100" # this must be a valid BigDecimal#toString representation
 
   # Blacklist specified clan names, color codes or worlds.
@@ -37,7 +38,6 @@ Clans:
 
 
 Formatting:
-
   Tag-limit: 15
   Prefix:
     Start: '&7['

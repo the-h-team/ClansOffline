@@ -102,7 +102,7 @@ public class JSONKeyValueDatastore<K, V> {
      *           exceptionally with {@link NullPointerException} if the
      *           internal Map is not tolerant of null keys.
      */
-    public CompletableFuture<@Nullable V> get(K key) {
+    public CompletableFuture<V> get(K key) {
         return CompletableFuture.supplyAsync(() -> data.get(key), readWriteService);
     }
 
@@ -143,7 +143,7 @@ public class JSONKeyValueDatastore<K, V> {
      *               </li>
      *           </ul>
      */
-    public CompletableFuture<@Nullable V> put(K key, V newValue) {
+    public CompletableFuture<V> put(K key, V newValue) {
         return CompletableFuture.supplyAsync(() -> data.put(key, newValue), readWriteService);
     }
 
@@ -176,7 +176,7 @@ public class JSONKeyValueDatastore<K, V> {
      *               </li>
      *           </ul>
      */
-    public CompletableFuture<@Nullable V> remove(K key) {
+    public CompletableFuture<V> remove(K key) {
         return CompletableFuture.supplyAsync(() -> data.remove(key), readWriteService);
     }
 

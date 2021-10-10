@@ -17,6 +17,8 @@ import com.github.sanctum.clansoffline.lib.ClaimManager;
 import com.github.sanctum.clansoffline.lib.ClanManager;
 import com.github.sanctum.clansoffline.lib.Manager;
 import com.github.sanctum.clansoffline.lib.ShieldManager;
+import com.github.sanctum.labyrinth.LabyrinthProvider;
+import com.github.sanctum.labyrinth.api.Service;
 import com.github.sanctum.labyrinth.command.CommandRegistration;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.Registry;
@@ -125,10 +127,10 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 		CommandRegistration.use(new ClanCommand());
 		new Registry<>(Listener.class).source(this).pick("com.github.sanctum.clansoffline.bukkit.listener").operate(l -> {
 			new EasyListener(l).call(this);
-			Vent.register(this, l);
+			LabyrinthProvider.getService(Service.VENT).subscribe(this, l);
 		});
 		getClanManager().refresh();
-		new Registry.Loader<>(ClanAddon.class).source(this).from("Addons").operate(ClanAddon::register);
+		new Registry.Loader<>(ClanAddon.class).source(this).from("Addons").confine(ClanAddon::register);
 		this.prefix = new ClanPrefix(file.read(f -> f.getString("Formatting.Prefix.Start")), file.read(f -> f.getString("Formatting.Prefix.Text")), file.read(f -> f.getString("Formatting.Prefix.End")));
 	}
 

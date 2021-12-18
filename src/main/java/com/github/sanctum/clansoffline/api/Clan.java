@@ -1,10 +1,13 @@
 package com.github.sanctum.clansoffline.api;
 
 import com.github.sanctum.clansoffline.bank.OfflineBank;
+import com.github.sanctum.clansoffline.bukkit.StringLibrary;
+import com.github.sanctum.clansoffline.impl.ClanAllyRequests;
 import com.github.sanctum.clansoffline.impl.ClanBase;
 import com.github.sanctum.clansoffline.impl.ClanDataContainer;
 import com.github.sanctum.clansoffline.impl.ClanDataFile;
 import com.github.sanctum.clansoffline.impl.EmptyComponent;
+import com.github.sanctum.labyrinth.annotation.Note;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.skulls.CustomHead;
 import java.io.Serializable;
@@ -20,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
@@ -58,6 +62,8 @@ public abstract class Clan implements OfflineBank {
 
 	public @NotNull abstract ClanDataContainer getContainer();
 
+	public @NotNull abstract ClanAllyRequests getRequests();
+
 	public @NotNull	abstract ClanDataFile getData();
 
 	public abstract boolean remove(Predicate<Associate> predicate);
@@ -67,6 +73,8 @@ public abstract class Clan implements OfflineBank {
 	public abstract boolean isLocked();
 
 	public abstract boolean isFriendly();
+
+	public abstract void broadcast(BaseComponent... components);
 
 	public abstract void broadcast(Predicate<Associate> predicate, String text);
 
@@ -212,6 +220,7 @@ public abstract class Clan implements OfflineBank {
 	public abstract static class Associate {
 
 		private final String id;
+		private final String name;
 
 		private final Clan clan;
 
@@ -231,6 +240,16 @@ public abstract class Clan implements OfflineBank {
 				this.head = CustomHead.Manager.get(id);
 			}
 			this.chat = "GLOBAL";
+			if (!getUUID().isPresent()) {
+				this.name = id;
+
+			} else {
+				this.name = Bukkit.getOfflinePlayer(getUUID().get()).getName();
+			}
+		}
+
+		public String getName() {
+			return this.name;
 		}
 
 		public ItemStack getHead() {
@@ -249,6 +268,7 @@ public abstract class Clan implements OfflineBank {
 			return this.rank;
 		}
 
+		@Note("This could return either a uuid or user-name!")
 		public String getId() {
 			return id;
 		}
@@ -292,6 +312,84 @@ public abstract class Clan implements OfflineBank {
 		public int getLevel() {
 			return level;
 		}
+
+		public String toShort() {
+			String test = StringLibrary.get("Formatting.Ranks.NORMAL.Full");
+			switch (this) {
+				case HIGH:
+					test = StringLibrary.get("Formatting.Ranks.HIGH.Wordless");
+					break;
+				case HIGHER:
+					test = StringLibrary.get("Formatting.Ranks.HIGHER.Wordless");
+					break;
+				case NORMAL:
+					test = StringLibrary.get("Formatting.Ranks.NORMAL.Wordless");
+					break;
+				case HIGHEST:
+					test = StringLibrary.get("Formatting.Ranks.HIGHEST.Wordless");
+					break;
+			}
+			return test;
+		}
+
+		public String toFull() {
+			String test = StringLibrary.get("Formatting.Ranks.NORMAL.Full");
+			switch (this) {
+				case HIGH:
+					test = StringLibrary.get("Formatting.Ranks.HIGH.Full");
+					break;
+				case HIGHER:
+					test = StringLibrary.get("Formatting.Ranks.HIGHER.Full");
+					break;
+				case NORMAL:
+					test = StringLibrary.get("Formatting.Ranks.NORMAL.Full");
+					break;
+				case HIGHEST:
+					test = StringLibrary.get("Formatting.Ranks.HIGHEST.Full");
+					break;
+			}
+			return test;
+		}
+
+		public String toRank() {
+			String test = StringLibrary.get("Formatting.Ranks.NORMAL.Full");
+			switch (StringLibrary.get("Formatting.Style").toLowerCase()) {
+				case "wordless":
+					switch (this) {
+						case HIGH:
+							test = StringLibrary.get("Formatting.Ranks.HIGH.Wordless");
+							break;
+						case HIGHER:
+							test = StringLibrary.get("Formatting.Ranks.HIGHER.Wordless");
+							break;
+						case NORMAL:
+							test = StringLibrary.get("Formatting.Ranks.NORMAL.Wordless");
+							break;
+						case HIGHEST:
+							test = StringLibrary.get("Formatting.Ranks.HIGHEST.Wordless");
+							break;
+					}
+					break;
+				case "full":
+					switch (this) {
+						case HIGH:
+							test = StringLibrary.get("Formatting.Ranks.HIGH.Full");
+							break;
+						case HIGHER:
+							test = StringLibrary.get("Formatting.Ranks.HIGHER.Full");
+							break;
+						case NORMAL:
+							test = StringLibrary.get("Formatting.Ranks.NORMAL.Full");
+							break;
+						case HIGHEST:
+							test = StringLibrary.get("Formatting.Ranks.HIGHEST.Full");
+							break;
+					}
+					break;
+			}
+			return test;
+		}
+
 	}
 
 }

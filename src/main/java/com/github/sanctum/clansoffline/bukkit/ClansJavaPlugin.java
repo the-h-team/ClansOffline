@@ -2,20 +2,22 @@ package com.github.sanctum.clansoffline.bukkit;
 
 import com.github.sanctum.clansoffline.api.Claim;
 import com.github.sanctum.clansoffline.api.Clan;
-import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.api.ClanAddon;
+import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.bank.BankManager;
 import com.github.sanctum.clansoffline.bukkit.command.ClanCommand;
-import com.github.sanctum.clansoffline.bukkit.event.ClaimResidentialEvent;
+import com.github.sanctum.clansoffline.bukkit.event.claim.ClaimResidentEvent;
+import com.github.sanctum.clansoffline.bukkit.event.claim.WildernessInhabitantEvent;
 import com.github.sanctum.clansoffline.impl.ClanDataFile;
 import com.github.sanctum.clansoffline.impl.ClanFileManager;
 import com.github.sanctum.clansoffline.impl.ClanPrefix;
 import com.github.sanctum.clansoffline.impl.LocationStorage;
 import com.github.sanctum.clansoffline.impl.Resident;
+import com.github.sanctum.clansoffline.impl.placeholder.LabyrinthPlaceholders;
+import com.github.sanctum.clansoffline.impl.placeholder.PapiPlaceholders;
 import com.github.sanctum.clansoffline.lib.AddonManager;
 import com.github.sanctum.clansoffline.lib.ClaimManager;
 import com.github.sanctum.clansoffline.lib.ClanManager;
-import com.github.sanctum.clansoffline.lib.Manager;
 import com.github.sanctum.clansoffline.lib.ShieldManager;
 import com.github.sanctum.labyrinth.LabyrinthProvider;
 import com.github.sanctum.labyrinth.api.Service;
@@ -26,11 +28,9 @@ import com.github.sanctum.labyrinth.event.EasyListener;
 import com.github.sanctum.labyrinth.event.custom.Vent;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.task.Schedule;
-
+import com.github.sanctum.labyrinth.task.TaskScheduler;
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -43,7 +43,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 
-	private final Set<Manager<?>> managers = new HashSet<>();
+	private ClanManager clanManager;
+	private ClaimManager claimManager;
+	private ShieldManager shieldManager;
+	private AddonManager adddonManager;
 	private ClanDataFile file;
 	private ClanPrefix prefix;
 	private BankManager bankManager;
@@ -58,64 +61,10 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 		if (!this.file.exists()) {
 			FileList.search(this).copyYML("Config", file.getComponent().getStorage());
 		}
-		Schedule.sync(() -> {
-
-			for (Player p : Bukkit.getOnlinePlayers()) {
-				if (getClaimManager().isInClaim(p.getLocation())) {
-					Claim claim = getClaimManager().get(c -> c.getChunk().equals(p.getLocation().getChunk()));
-					ClaimResidentialEvent event = new Vent.Call<>(new ClaimResidentialEvent(claim, p)).run();
-					if (!event.isCancelled()) {
-						Resident r = event.getResident();
-						Claim lastKnown = r.getClaim();
-						if (claim.isActive()) {
-							if (claim.getOwner() == null) {
-								getClaimManager().remove(claim);
-								return;
-							}
-							if (!event.getClaim().getId().equals(lastKnown.getId())) {
-								if (r.hasProperty(Resident.Property.NOTIFIED)) {
-									if (!lastKnown.getOwner().equals(claim.getOwner())) {
-										r.setProperty(Resident.Property.NOTIFIED, false);
-										Clan.Associate associate = ClansAPI.getInstance().getAssociate(r.getPlayer().getName());
-										if (associate != null) {
-											if (lastKnown.getOwner().equals(associate.getClan())) {
-												r.setProperty(Resident.Property.TRAVERSED, true);
-											}
-										}
-										r.update(event.getClaim());
-										r.update(System.currentTimeMillis());
-									}
-								}
-							}
-							if (!r.hasProperty(Resident.Property.NOTIFIED)) {
-								event.sendNotification();
-								r.setProperty(Resident.Property.NOTIFIED, true);
-							} else {
-								if (r.hasProperty(Resident.Property.TRAVERSED)) {
-									Clan.Associate associate = ClansAPI.getInstance().getAssociate(r.getPlayer().getName());
-									if (associate != null) {
-										r.setProperty(Resident.Property.TRAVERSED, false);
-										r.setProperty(Resident.Property.NOTIFIED, false);
-										r.update(System.currentTimeMillis());
-									}
-								}
-							}
-						}
-					}
-				} else {
-					// Call wild event.
-					Resident resident = ClaimResidentialEvent.getResident(p);
-					if (resident != null) {
-						resident.remove();
-					}
-				}
-			}
-
-		}).repeatReal(0, 20);
-		managers.add(new ClanManager());
-		managers.add(new ClaimManager());
-		managers.add(new ShieldManager());
-		managers.add(new AddonManager());
+		this.claimManager = new ClaimManager();
+		this.clanManager = new ClanManager();
+		this.adddonManager = new AddonManager();
+		this.shieldManager = new ShieldManager();
 		this.bankManager = new BankManager(this);
 		Optional.ofNullable(getMain().read(f -> f.getString("Clans.bank.starting-balance"))).map(s -> {
 			try {
@@ -125,13 +74,19 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 			}
 		}).ifPresent(bankManager::setStartingBalance);
 		CommandRegistration.use(new ClanCommand());
-		new Registry<>(Listener.class).source(this).pick("com.github.sanctum.clansoffline.bukkit.listener").operate(l -> {
-			new EasyListener(l).call(this);
-			LabyrinthProvider.getService(Service.VENT).subscribe(this, l);
-		});
+		new Registry<>(Listener.class).source(this).pick("com.github.sanctum.clansoffline.bukkit.listener").operate(l -> LabyrinthProvider.getService(Service.VENT).subscribe(this, l));
 		getClanManager().refresh();
 		new Registry.Loader<>(ClanAddon.class).source(this).from("Addons").confine(ClanAddon::register);
 		this.prefix = new ClanPrefix(file.read(f -> f.getString("Formatting.Prefix.Start")), file.read(f -> f.getString("Formatting.Prefix.Text")), file.read(f -> f.getString("Formatting.Prefix.End")));
+		TaskScheduler.of(() -> {
+			if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+				getLogger().info("- Placeholder api found! Registering expansion.");
+				new PapiPlaceholders().register();
+			} else {
+				getLogger().warning("- PlaceholderAPI not found, unable to register placeholders.");
+			}
+			new LabyrinthPlaceholders().register().deploy();
+		}).scheduleLater(85);
 	}
 
 	@Override
@@ -191,29 +146,29 @@ public final class ClansJavaPlugin extends JavaPlugin implements ClansAPI {
 	@NotNull
 	@Override
 	public AddonManager getAddonManager() {
-		return managers.stream().filter(m -> m instanceof AddonManager).map(manager -> (AddonManager)manager).findFirst().get();
+		return this.adddonManager;
 	}
 
 	@NotNull
 	@Override
 	public ClanManager getClanManager() {
-		return managers.stream().filter(m -> m instanceof ClanManager).map(manager -> (ClanManager)manager).findFirst().get();
+		return this.clanManager;
 	}
 
 	@NotNull
 	@Override
 	public ClaimManager getClaimManager() {
-		return managers.stream().filter(m -> m instanceof ClaimManager).map(manager -> (ClaimManager)manager).findFirst().get();
+		return this.claimManager;
 	}
 
 	@NotNull
 	@Override
 	public ShieldManager getShieldManager() {
-		return managers.stream().filter(m -> m instanceof ShieldManager).map(manager -> (ShieldManager)manager).findFirst().get();
+		return this.shieldManager;
 	}
 
 	@Override
 	public BankManager getBankManager() {
-		return bankManager;
+		return this.bankManager;
 	}
 }

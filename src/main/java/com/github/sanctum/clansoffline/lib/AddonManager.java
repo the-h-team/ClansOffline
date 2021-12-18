@@ -6,17 +6,15 @@ import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-public class AddonManager extends Manager<ClanAddon>{
+public class AddonManager {
 
 	private final Set<ClanAddon> ADDONS = new HashSet<>();
 
-	@Override
 	public boolean load(@NotNull ClanAddon addon) {
 		addon.onEnable();
 		return ADDONS.add(addon);
 	}
 
-	@Override
 	public boolean remove(@NotNull ClanAddon addon) {
 		addon.onDisable();
 		return ADDONS.remove(addon);

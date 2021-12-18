@@ -6,16 +6,19 @@ import com.github.sanctum.clansoffline.api.ClansAPI;
 import com.github.sanctum.clansoffline.bank.EconomyEntity;
 import com.github.sanctum.clansoffline.bank.exceptions.DepositException;
 import com.github.sanctum.clansoffline.bank.exceptions.WithdrawalException;
+import com.github.sanctum.clansoffline.bukkit.StringLibrary;
 import com.github.sanctum.labyrinth.data.EconomyProvision;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +40,7 @@ public class OfflineClan extends Clan {
 
 	public OfflineClan(@NotNull String id) {
 
-		this.id = HUID.fromString(id);
+		this.id = HUID.parseID(id).toID();
 
 		ClanDataFile file = new ClanDataFile(new ClanFileManager(id, "Clans"));
 
@@ -110,6 +113,9 @@ public class OfflineClan extends Clan {
 		this.associates = associates;
 		this.allies = new HashSet<>();
 		this.enemies = new HashSet<>();
+		if (!getContainer().exists("ally_requests")) {
+			getContainer().attach("ally_requests", new ClanAllyRequests());
+		}
 	}
 
 	@NotNull
@@ -189,7 +195,6 @@ public class OfflineClan extends Clan {
 		if (base == null) {
 			ClanBase copy = new ClanBase(this, (Location) null);
 			copy.setKey(id + ":base");
-			;
 			return add(copy);
 		}
 		return base;
@@ -229,6 +234,12 @@ public class OfflineClan extends Clan {
 
 	@NotNull
 	@Override
+	public ClanAllyRequests getRequests() {
+		return getContainer().get(ClanAllyRequests.class, "ally_requests");
+	}
+
+	@NotNull
+	@Override
 	public synchronized ClanDataFile getData() {
 		ClanDataFile file = get(c -> c instanceof ClanDataFile && c.getKey() != null && c.getKey().equals(id + ":data"));
 		assert file != null;
@@ -252,7 +263,7 @@ public class OfflineClan extends Clan {
 			return false;
 		}
 		if (associate.getRank().getLevel() == 3) {
-			broadcast(m -> true, "&6" + associate.getId() + " &chas disbanded the clan!");
+			broadcast(m -> true, MessageFormat.format(StringLibrary.get("Response.clan-disband"), associate.getClan().getName(), associate.getName()));
 			Schedule.sync(() -> {
 				Schedule.sync(() -> ClansAPI.getInstance().getClanManager().remove(OfflineClan.this)).run();
 			}).waitReal(2);
@@ -269,6 +280,17 @@ public class OfflineClan extends Clan {
 	@Override
 	public boolean isFriendly() {
 		return this.friendly;
+	}
+
+	@Override
+	public void broadcast(BaseComponent... components) {
+		for (Associate ass : getMembers()) {
+			ass.getPlayer().ifPresent(player -> {
+				if (player.isOnline()) {
+					player.getPlayer().spigot().sendMessage(components);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -290,13 +312,12 @@ public class OfflineClan extends Clan {
 		if (owner != null) {
 			owner.setRank(Rank.NORMAL);
 		}
-		for (Associate ass : getMembers()) {
-			if (ass.getId().equals(newOwner)) {
-				ass.setRank(Rank.HIGHEST);
-				return;
-			}
+		Associate test = getMembers().stream().filter(m -> m.getId().equals(newOwner)).findFirst().orElse(null);
+		if (test != null) {
+			test.setRank(Rank.HIGHEST);
+		} else {
+			getMembers().add(new OfflineAssociate(newOwner, this, Rank.HIGHEST));
 		}
-		getMembers().add(new OfflineAssociate(newOwner, this, Rank.HIGHEST));
 	}
 
 	@Override

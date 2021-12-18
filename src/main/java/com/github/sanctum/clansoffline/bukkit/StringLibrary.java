@@ -1,12 +1,13 @@
 package com.github.sanctum.clansoffline.bukkit;
 
 import com.github.sanctum.clansoffline.api.ClansAPI;
+import com.github.sanctum.labyrinth.placeholders.PlaceholderRegistration;
 import java.util.List;
 
 public class StringLibrary {
 
 	public static synchronized String get(String path) {
-		return ClansAPI.getInstance().getMain().read(f -> f.getString(path));
+		return ClansAPI.getInstance().getMain().read(f -> PlaceholderRegistration.getInstance().replaceAll(f.getString(path)));
 	}
 
 	public static synchronized int getInt(String path) {
@@ -23,6 +24,14 @@ public class StringLibrary {
 
 	public static synchronized List<String> getList(String path) {
 		return ClansAPI.getInstance().getMain().read(f -> f.getStringList(path));
+	}
+
+	public static int getTagLimit() {
+		return getInt("Formatting.Tag-limit");
+	}
+
+	public static boolean isDefaultFormatting() {
+		return ClansAPI.getInstance().getMain().read(f -> f.getBoolean("Formatting.allow"));
 	}
 
 }

@@ -1,5 +1,24 @@
+#
+# ---------------------------------------------------------#
+#   ▄████████  ▄█          ▄████████ ███▄▄▄▄      ▄████████
+#  ███    ███ ███         ███    ███ ███▀▀▀██▄   ███    ███
+#  ███    █▀  ███         ███    ███ ███   ███   ███    █▀
+#  ███        ███         ███    ███ ███   ███   ███
+#  ███        ███       ▀███████████ ███   ███ ▀███████████
+#  ███    █▄  ███         ███    ███ ███   ███          ███
+#  ███    ███ ███▌    ▄   ███    ███ ███   ███    ▄█    ███
+#  ████████▀  █████▄▄██   ███    █▀   ▀█   █▀   ▄████████▀
+# ---------------------------------------------------------#
+# - MIT 2021 via sanctum.
 Clans:
 
+  timer:
+    # Valid thresholds: [ MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS ]
+    threshold: MILLISECONDS
+    time-span: 40
+
+  # Default clearance section
+  # [0 = Member, 1 = Moderator, 2 = Admin, 3 = Owner]
   clearance-adjustment:
     leave: 0
     invite: 1
@@ -18,6 +37,13 @@ Clans:
       ## NORMAL = Depend on a clans bank balance for obtaining land.
       ## LOW = Assist the base multiplier and all other power additions for no / slower bank situations.
       dependence: HIGH
+    titles:
+      claim: '&6Now entering {0}'
+      claim-sub: '&6Clan owned land'
+      claim-msg: '&7Now entering {0} land'
+      wilderness: '&4Leaving claimed land'
+      wilderness-msg: '&7Now leaving claimed land.'
+      wilderness-sub: '&4Non clan owned land.'
 
   bank:
     enabled: true
@@ -26,51 +52,89 @@ Clans:
 
   # Blacklist specified clan names, color codes or worlds.
   list:
+    # Clan names not allowed on the server.
+    # You should leave the default names in the list, you don't want people using them.
     names:
       - nigger
       - faggot
+    # Clan color codes not allowed on the server.
     colors:
       - '&k'
+    # Worlds that cannot use clans features.
     worlds:
-      - world
-      - world_nether
-      - world_the_end
+      - WorldNameHere
 
 
 Formatting:
+  # whether to allow natural chat formatting for player clans.
+  allow: true
   Tag-limit: 15
   Prefix:
     Start: '&7['
     Text: '&2Clans'
     End: '&7]&r'
-  Style: Wordless
-  Ranks:
-    NORMAL:
-      Full: 'Member'
-      Wordless: '•'
-    HIGH:
-      Full: 'Moderator'
-      Wordless: '••'
-    HIGHER:
-      Full: 'Admin'
-      Wordless: '•••'
-    HIGHEST:
-      Full: 'Owner'
-      Wordless: '&4•❂•'
+  Chat:
+    rank-style: Wordless
+    Styles:
+      NORMAL:
+        Full: 'Member'
+        Wordless: '•'
+      HIGH:
+        Full: 'Moderator'
+        Wordless: '••'
+      HIGHER:
+        Full: 'Admin'
+        Wordless: '•••'
+      HIGHEST:
+        Full: 'Owner'
+        Wordless: '•••❂'
+    Channel:
+      # {0} = Rank, {1} = Clan name colored
+      global: '{0}{1}'
+      # {0} = Associate, {1} = Rank full, {2} = Rank short, {3} = message
+      clan: '&f(&3CC&f) {0} &7(&r{1}&7): {3}'
+      ally: '&f(&aAC&f) {0} &7(&r{1}&7): {3}'
 
 Response:
-  clan-create: '&aA new clan named &2&l{0} &awas created.'
-  clan-disband: '&cClan &2&l{0} &chas disbanded!'
+  clan-create: '&aA new {1} clan named &2&l{0} &awas created.'
+  clan-disband: '&cClan &2&l{0} &chas been disbanded by &2&l{1}!'
   clan-invite: '&6{0} &ehas been invited to our clan.'
   clan-invite-out: '&2&l{0} &a has invited you to their clan. Accept with &a''/&7clan &fjoin &8{0} &6{1}'''
   clan-mode-change: '&4{0} changed our friendly-fire to: &c{1}'
-  clan-claim: '&3New land has been acquired @ location&7[X={0}, Z={1}]&3.'
-  clan-unclaim: '&cLand was unclaimed @ location&7[X={0}, Z={1}]&c.'
+  clan-claim: '&3New land has been acquired @ location &7[X={0}, Z={1}]&3.'
+  clan-unclaim: '&cLand was unclaimed @ location &7[X={0}, Z={1}]&c.'
   clan-unclaim-all: '&cAll land has been unclaimed.'
+  clan-breach: '&cLand has been breached @ location &7[X={0}, Z={1}]&c.'
+  clan-truce: '&e{0} has requested a truce with us &f|'
+  clan-truced: '&fNow neutral with clan {0}'
+  clan-truce-out: '&dMember {0} has requested a truce with clan {1}'
+  clan-ally: '&6{0} has requested alliance with us &f|'
+  clan-ally-out: '&dMember {0} has requested alliance with clan {1} &f|'
+  clan-waiting: '&cWe are still waiting for {0} to respond.'
+  claim-limit-reached: '&cOur claim limit has been reached! Gain more members or power for more!'
+  cant-hurt-ally: '&cCannot hurt allies!'
+  member-leave: '&c{0} has left the clan.'
+  member-join: '&a{0} has joined the clan.'
+  invalid-name: '&cWe searched for {0] and couldn''t find them'
   not-in-clan: '&cYou are not in a clan'
+  tag-too-long: '&cYour tag is too long! It cannot me more than {0} chars'
   not-in-claim: '&cYou are not in a claim'
   no-clearance: '&cYou don''t have clan clearance.'
+  no-base: '&cOur clan does''nt have a base set.'
+  now-enemies: '&cWe are now enemies with clan {0}'
+  enemies-from-allies: '&4We are no longer allied with clan {0}'
+  now-allies: '&aWe are now allies with clan {0}'
+  teleporting: '&aTeleporting in 10 seconds.'
+  base-set: '&3Our base location has been updated.'
   already-in-clan: '&cYou are already a member of a clan!'
+  already-allies: '&cWe''re already allies with clan {0}'
+  already-enemies: '&cWe''re already enemies with clan {0}'
+  already-neutral: '&cWe''re already neutral with clan {0}'
   player-in-clan: '&c{0} is already a member of a clan!'
   land-self-owned: '&cYour clan already own''s this land!'
-  land-already-owned: '&c{0} owns this land and is more powerful than you!'
+  land-already-owned: '&c{0} owns this land!'
+##------------------------
+## -- DO NOT EDIT BELOW --
+# Authors: Hempfest, ms5984
+##------------------------
+Version: Beta-3.0.1

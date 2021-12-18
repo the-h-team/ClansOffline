@@ -13,16 +13,14 @@ import java.util.List;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
-public class ClanManager extends Manager<Clan>{
+public class ClanManager {
 
 	private final List<Clan> CLANS = new LinkedList<>();
 
-	@Override
 	public boolean load(@NotNull Clan clan) {
 		return this.CLANS.add(clan);
 	}
 
-	@Override
 	public boolean remove(@NotNull Clan c) {
 		c.getData().delete();
 		return CLANS.remove(c);

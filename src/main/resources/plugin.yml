@@ -1,7 +1,7 @@
 name: ClansOffline
-version: ${project.version}
+version: Beta-3.0.1
 main: com.github.sanctum.clansoffline.bukkit.ClansJavaPlugin
 api-version: 1.13
 depend: [ Labyrinth ]
 authors: [ Hempfest ]
-description: A smaller port to clans [pro] allowing for use in offline mode.
+description: A fun alternative to factions and a demo into the premium version.

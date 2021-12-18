@@ -48,11 +48,13 @@ public class BankManager {
                 throw new IllegalStateException("A file error has occurred while accessing " + readablePath, e);
             }
         }
+        /*
         try {
             balanceDatastore.awaitLoadFromReader(new FileReader(this.dataFile));
         } catch (FileNotFoundException e) {
             throw new IllegalStateException(e);
         }
+         */
     }
 
     /**

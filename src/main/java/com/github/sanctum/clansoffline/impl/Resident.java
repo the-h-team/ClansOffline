@@ -1,7 +1,7 @@
 package com.github.sanctum.clansoffline.impl;
 
 import com.github.sanctum.clansoffline.api.Claim;
-import com.github.sanctum.clansoffline.bukkit.event.ClaimResidentialEvent;
+import com.github.sanctum.clansoffline.bukkit.event.claim.ClaimResidentEvent;
 import com.github.sanctum.labyrinth.library.TimeWatch;
 import com.github.sanctum.labyrinth.task.Schedule;
 import java.util.HashSet;
@@ -60,7 +60,7 @@ public class Resident {
 	}
 
 	public void remove() {
-		Schedule.sync(() -> ClaimResidentialEvent.RESIDENTS.remove(this)).run();
+		Schedule.sync(() -> ClaimResidentEvent.RESIDENTS.remove(this)).run();
 	}
 
 	public enum Property {

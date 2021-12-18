@@ -1,18 +1,20 @@
-package com.github.sanctum.clansoffline.bukkit.event;
+package com.github.sanctum.clansoffline.bukkit.event.associate;
 
 import com.github.sanctum.clansoffline.api.Clan;
+import com.github.sanctum.clansoffline.bukkit.event.ClanEvent;
 import java.util.Set;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 
-public class ClanChatEvent extends AsyncClanEvent {
+public class AssociateChatEvent extends ClanEvent {
 
 	private final Clan.Associate associate;
 	private final Set<Player> recipients;
 	private String message;
-	private BaseComponent component;
+	private BaseComponent[] component;
 
-	public ClanChatEvent(Clan.Associate associate, String message, Set<Player> recipients) {
+	public AssociateChatEvent(Clan.Associate associate, String message, Set<Player> recipients) {
+		super(true);
 		this.associate = associate;
 		this.message = message;
 		this.recipients = recipients;
@@ -22,7 +24,7 @@ public class ClanChatEvent extends AsyncClanEvent {
 		return recipients;
 	}
 
-	public BaseComponent getComponent() {
+	public BaseComponent[] getComponents() {
 		return component;
 	}
 
@@ -34,7 +36,7 @@ public class ClanChatEvent extends AsyncClanEvent {
 		this.message = message;
 	}
 
-	public void setComponent(BaseComponent component) {
+	public void setComponents(BaseComponent... component) {
 		this.component = component;
 	}
 
@@ -44,5 +46,10 @@ public class ClanChatEvent extends AsyncClanEvent {
 
 	public Clan.Associate getAssociate() {
 		return associate;
+	}
+
+	@Override
+	public Clan getClan() {
+		return getAssociate().getClan();
 	}
 }

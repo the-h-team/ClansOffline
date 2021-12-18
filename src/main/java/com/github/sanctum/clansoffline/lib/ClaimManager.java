@@ -10,16 +10,14 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
-public class ClaimManager extends Manager<Claim>{
+public class ClaimManager {
 
 	private final List<Claim> CLAIMS = new LinkedList<>();
 
-	@Override
 	public boolean load(@NotNull Claim claim) {
 		return CLAIMS.add(claim);
 	}
 
-	@Override
 	public boolean remove(@NotNull Claim claim) {
 		ClanDataFile file = claim.getOwner().getData();
 		file.set("claims." + claim.getId().toString(), null);
